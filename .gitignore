@@ -1,12 +1,14 @@
 # 1. Ignorer les fichiers de variables secrets
 .env
+.env.*
 *.env
-# (autorisation des modeles)
+.env*
+
+# (Mais on autorise explicitement les modèles)
+!.env.example
 !.env.exemple
 
 # 2. Ignorer les dossiers de configuration (Data)
-# Si vous créez des dossiers "config" ou "data" à côté de vos compose.yaml, 
-# Git ne les regardera jamais.
 config/
 data/
 */config/
