@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Jellyfin (Le Serveur Médias)
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      # Stockage des configurations (chemin relatif géré par le .env)
+      - ${CHEMIN_RELATIF_CONFIG}/jellyfin/config:/config
+      - ${CHEMIN_RELATIF_CONFIG}/jellyfin/cache:/cache
+      # Accès à la bibliothèque de médias (chemin absolu géré par le .env)
+      - ${CHEMIN_ABSOLU_MEDIA}:/media
+    ports:
+      - 8096:8096
+    restart: unless-stopped
+
+  # Jellyseerr (Le Guichet de Demandes)
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    depends_on:
+      - jellyfin
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+    volumes:
+      # Stockage des réglages (chemin relatif géré par le .env)
+      - ${CHEMIN_RELATIF_CONFIG}/jellyseerr:/app/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
