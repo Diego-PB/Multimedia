@@ -76,7 +76,7 @@ services:
 
   # Profilarr (Les profils qualité)
   profilarr:
-    image: dictionarryhub/profilarr:latest
+    image: ghcr.io/dictionarry-hub/profilarr:latest
     container_name: profilarr
     environment:
       - PUID=${PUID}
