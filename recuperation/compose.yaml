@@ -1,1 +1,87 @@
+services:
+  # qBittorrent (Le Téléchargeur)
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "container:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    volumes:
+      - ${CHEMIN_RELATIF_CONFIG}/qbittorrent:/config
+      # qBittorrent télécharge dans /data/telechargements
+      - ${CHEMIN_ABSOLU_MEDIA}:/data
+    restart: unless-stopped
 
+  # Prowlarr (Le Chercheur de sources)
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: "container:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CHEMIN_RELATIF_CONFIG}/prowlarr:/config
+    restart: unless-stopped
+
+  # Radarr (Le Gestionnaire de Films)
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CHEMIN_RELATIF_CONFIG}/radarr:/config
+      # Radarr surveille /data/telechargements et place dans /data/films
+      - ${CHEMIN_ABSOLU_MEDIA}:/data
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  # Sonarr (Le Gestionnaire de Séries)
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CHEMIN_RELATIF_CONFIG}/sonarr:/config
+      - ${CHEMIN_ABSOLU_MEDIA}:/data
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  # Bazarr (Le Gestionnaire de Sous-titres)
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CHEMIN_RELATIF_CONFIG}/bazarr:/config
+      - ${CHEMIN_ABSOLU_MEDIA}:/data
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+
+  # Profilarr (Les profils qualité)
+  profilarr:
+    image: dictionarryhub/profilarr:latest
+    container_name: profilarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CHEMIN_RELATIF_CONFIG}/profilarr:/config
+    restart: unless-stopped
