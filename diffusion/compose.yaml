@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Jellyfin (Le Serveur Médias)
   jellyfin:

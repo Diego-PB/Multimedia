@@ -84,4 +84,6 @@ services:
       - TZ=${TZ}
     volumes:
       - ${CHEMIN_RELATIF_CONFIG}/profilarr:/config
+    ports:
+      - 6868:6868
     restart: unless-stopped

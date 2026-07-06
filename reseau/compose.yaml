@@ -15,14 +15,13 @@ services:
       - VPN_TYPE=${VPN_TYPE}
       - WIREGUARD_PRIVATE_KEY=${VPN_CLE_PRIVEE}
       - SERVER_COUNTRIES=${VPN_PAYS}
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
     volumes:
       - ${CHEMIN_RELATIF_CONFIG}/gluetun:/gluetun
     ports:
       # --- PORTS DES APPLICATIONS CACHÉES DERRIÈRE LE VPN ---
-      # 1. qBittorrent
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
-      # 2. Prowlarr
       - 9696:9696
     restart: unless-stopped
