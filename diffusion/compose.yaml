@@ -3,6 +3,8 @@ services:
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
+    networks:
+      - multimedia_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -21,6 +23,8 @@ services:
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
+    networks:
+      - multimedia_net
     depends_on:
       - jellyfin
     environment:
@@ -32,3 +36,7 @@ services:
     ports:
       - 5055:5055
     restart: unless-stopped
+
+networks:
+  multimedia_net:
+    external: true

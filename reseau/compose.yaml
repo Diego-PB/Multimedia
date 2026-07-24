@@ -7,6 +7,8 @@ services:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
+    networks:
+      - multimedia_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -16,6 +18,7 @@ services:
       - WIREGUARD_PRIVATE_KEY=${VPN_CLE_PRIVEE}
       - SERVER_COUNTRIES=${VPN_PAYS}
       - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
+      - VPN_PORT_FORWARDING=on
     volumes:
       - ${CHEMIN_RELATIF_CONFIG}/gluetun:/gluetun
     ports:
@@ -25,3 +28,7 @@ services:
       - 6881:6881/udp
       - 9696:9696
     restart: unless-stopped
+
+networks:
+  multimedia_net:
+    external: true

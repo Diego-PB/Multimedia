@@ -32,6 +32,8 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
+    networks:
+      - multimedia_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -48,6 +50,8 @@ services:
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
+    networks:
+      - multimedia_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -63,6 +67,8 @@ services:
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
+    networks:
+      - multimedia_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -74,16 +80,6 @@ services:
       - 6767:6767
     restart: unless-stopped
 
-  # Profilarr (Les profils qualité)
-  profilarr:
-    image: ghcr.io/dictionarry-hub/profilarr:latest
-    container_name: profilarr
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${CHEMIN_RELATIF_CONFIG}/profilarr:/config
-    ports:
-      - 6868:6868
-    restart: unless-stopped
+networks:
+  multimedia_net:
+    external: true
