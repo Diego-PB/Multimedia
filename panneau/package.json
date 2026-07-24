@@ -1,0 +1,13 @@
+{
+  "name": "multimedia-panneau",
+  "version": "1.0.0",
+  "description": "Panneau de contrôle pour le serveur multimédia Docker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dockerode": "^4.0.4",
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panneau de Contrôle — Serveur Multimédia</title>
+  <meta name="description" content="Interface de gestion du serveur multimédia Docker">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast-container"></div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">🎬</span>
+          <div>
+            <h1>Serveur Multimédia</h1>
+            <p class="header-subtitle">Panneau de contrôle</p>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="global-status" id="global-status">
+          <span class="status-dot" id="global-dot"></span>
+          <span id="global-text">Chargement...</span>
+        </div>
+        <nav class="nav-tabs">
+          <button class="nav-tab active" data-tab="dashboard" id="tab-dashboard">
+            <span class="nav-icon">📊</span> Dashboard
+          </button>
+          <button class="nav-tab" data-tab="config" id="tab-config">
+            <span class="nav-icon">⚙️</span> Configuration
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ==================== BANNIÈRE D'IMPORT ==================== -->
+    <div class="import-banner" id="import-banner" style="display: none;">
+      <div class="import-content">
+        <span class="import-icon">📦</span>
+        <div class="import-text">
+          <strong>Archive de configuration détectée</strong>
+          <p>Un pack de configurations pré-configuré est disponible. Importez-le pour récupérer tous les réglages.</p>
+        </div>
+        <button class="btn btn-accent" id="btn-importer" onclick="importerArchive()">
+          Importer les configs
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <section class="tab-content active" id="section-dashboard">
+
+      <!-- Boutons de contrôle principaux -->
+      <div class="control-bar">
+        <button class="btn btn-start" id="btn-demarrer" onclick="demarrerTout()">
+          <span class="btn-icon">🚀</span> Tout Démarrer
+        </button>
+        <button class="btn btn-stop" id="btn-arreter" onclick="arreterTout()">
+          <span class="btn-icon">🛑</span> Tout Arrêter
+        </button>
+        <button class="btn btn-update" id="btn-update" onclick="mettreAJour()">
+          <span class="btn-icon">🔄</span> Mettre à jour
+        </button>
+        <button class="btn btn-export" id="btn-exporter" onclick="exporterConfigs()">
+          <span class="btn-icon">📦</span> Exporter les configs
+        </button>
+      </div>
+
+      <!-- Grille des services -->
+      <div class="services-grid" id="services-grid">
+        <!-- Rempli dynamiquement par app.js -->
+      </div>
+
+    </section>
+
+    <!-- ==================== CONFIGURATION ==================== -->
+    <section class="tab-content" id="section-config">
+
+      <form id="config-form" onsubmit="sauvegarderConfig(event)">
+
+        <!-- Groupe Système -->
+        <div class="config-group">
+          <div class="config-group-header">
+            <span class="config-group-icon">🖥️</span>
+            <div>
+              <h2>Système</h2>
+              <p>Identifiants utilisateur et fuseau horaire</p>
+            </div>
+          </div>
+          <div class="config-fields">
+            <div class="field">
+              <label for="cfg-puid">PUID</label>
+              <input type="text" id="cfg-puid" name="PUID" placeholder="1000">
+              <span class="field-help">Trouvable avec la commande <code>id</code> dans le terminal</span>
+            </div>
+            <div class="field">
+              <label for="cfg-pgid">PGID</label>
+              <input type="text" id="cfg-pgid" name="PGID" placeholder="1000">
+              <span class="field-help">Même commande : <code>id</code></span>
+            </div>
+            <div class="field">
+              <label for="cfg-tz">Fuseau horaire</label>
+              <input type="text" id="cfg-tz" name="TZ" placeholder="Europe/Paris">
+              <span class="field-help">Format TZ standard (ex: Europe/Paris, America/New_York)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Groupe Chemins -->
+        <div class="config-group">
+          <div class="config-group-header">
+            <span class="config-group-icon">📁</span>
+            <div>
+              <h2>Chemins</h2>
+              <p>Dossiers de configuration et de stockage des médias</p>
+            </div>
+          </div>
+          <div class="config-fields">
+            <div class="field">
+              <label for="cfg-config-path">Dossier de configuration</label>
+              <input type="text" id="cfg-config-path" name="CHEMIN_RELATIF_CONFIG" placeholder="./config">
+              <span class="field-help">Chemin relatif où les apps stockent leurs réglages. Laissez <code>./config</code> sauf raison particulière.</span>
+            </div>
+            <div class="field field-important">
+              <label for="cfg-media-path">📌 Dossier des médias</label>
+              <input type="text" id="cfg-media-path" name="CHEMIN_ABSOLU_MEDIA" placeholder="/chemin/vers/media">
+              <span class="field-help">
+                Chemin <strong>absolu</strong> vers le dossier de stockage.<br>
+                <strong>Windows :</strong> <code>C:/Users/VotreNom/Videos/media</code><br>
+                <strong>NAS :</strong> <code>/volume1/media</code><br>
+                <strong>Linux :</strong> <code>/home/user/media</code>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Groupe VPN -->
+        <div class="config-group">
+          <div class="config-group-header">
+            <span class="config-group-icon">🛡️</span>
+            <div>
+              <h2>VPN (Gluetun)</h2>
+              <p>Connexion sécurisée pour les téléchargements</p>
+            </div>
+          </div>
+          <div class="config-fields">
+            <div class="field">
+              <label for="cfg-vpn-provider">Fournisseur VPN</label>
+              <input type="text" id="cfg-vpn-provider" name="VPN_FOURNISSEUR" placeholder="protonvpn">
+              <span class="field-help">Nom connu par Gluetun : <code>protonvpn</code>, <code>mullvad</code>, <code>nordvpn</code>, <code>surfshark</code>... ou <code>custom</code></span>
+            </div>
+            <div class="field">
+              <label for="cfg-vpn-type">Type de VPN</label>
+              <input type="text" id="cfg-vpn-type" name="VPN_TYPE" placeholder="wireguard">
+              <span class="field-help"><code>wireguard</code> (recommandé) ou <code>openvpn</code></span>
+            </div>
+            <div class="field field-important">
+              <label for="cfg-vpn-key">📌 Clé privée WireGuard</label>
+              <input type="password" id="cfg-vpn-key" name="VPN_CLE_PRIVEE" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+              <span class="field-help">La clé privée de votre fichier de configuration WireGuard (.conf)</span>
+            </div>
+            <div class="field">
+              <label for="cfg-vpn-country">Pays du serveur VPN</label>
+              <input type="text" id="cfg-vpn-country" name="VPN_PAYS" placeholder="Switzerland">
+              <span class="field-help">Pays en anglais (ex: Switzerland, Netherlands, Sweden)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bouton sauvegarder -->
+        <div class="config-actions">
+          <button type="submit" class="btn btn-save" id="btn-save">
+            <span class="btn-icon">💾</span> Sauvegarder la configuration
+          </button>
+          <span class="save-hint">La configuration est sauvegardée automatiquement et persiste entre les redémarrages.</span>
+        </div>
+
+      </form>
+
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>Panneau de Contrôle Multimédia — Docker</p>
+  </footer>
+
+  <!-- OVERLAY DES LOGS -->
+  <div class="modal-overlay" id="logs-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="logs-title">Logs</h3>
+        <button class="btn-close" onclick="fermerLogs()">✖</button>
+      </div>
+      <div class="modal-body">
+        <pre id="logs-output">Chargement...</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY DE CHARGEMENT -->
+  <div class="loading-overlay" id="loading-overlay" style="display: none;">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p id="loading-message">Opération en cours...</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

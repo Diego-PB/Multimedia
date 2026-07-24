@@ -1,0 +1,17 @@
+services:
+  panneau:
+    build: .
+    container_name: multimedia-panneau
+    volumes:
+      # Socket Docker pour contrôler les conteneurs
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Dossier projet pour accéder aux compose.yaml et .env
+      - ../:/projet
+      # Données persistantes (config sauvegardée)
+      - panneau-data:/app/data
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+
+volumes:
+  panneau-data:
