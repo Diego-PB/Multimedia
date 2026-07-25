@@ -13,6 +13,8 @@ else
   echo "1 - Lancer tout (Mise à jour incluse)"
   echo "2 - Éteindre tout"
   echo "3 - Mettre à jour et nettoyer les images"
+  echo "4 - Sauvegarder la configuration"
+  echo "5 - Restaurer une sauvegarde"
   echo "0 - Quitter"
   echo "========================================"
   read -p "Votre choix : " choix
@@ -68,6 +70,23 @@ case $choix in
     echo "🧹 Nettoyage des anciennes images pour libérer de la place..."
     docker image prune -f
     echo "✅ Mise à jour et nettoyage terminés !"
+    ;;
+
+  4)
+    echo "📦 Lancement de la sauvegarde..."
+    ./sauvegarder.sh
+    ;;
+
+  5)
+    if [ -z "${2:-}" ]; then
+      echo "📋 Archives disponibles :"
+      ls -lh multimedia_backup_*.tar.gz 2>/dev/null || echo "  Aucune archive trouvée dans ce dossier."
+      echo ""
+      read -p "Chemin de l'archive à restaurer : " archive
+      ./restaurer.sh "$archive"
+    else
+      ./restaurer.sh "$2"
+    fi
     ;;
     
   0)

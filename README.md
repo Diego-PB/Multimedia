@@ -37,3 +37,35 @@ Pour accéder aux interfaces d'administration depuis votre navigateur (via `http
 | **qBittorrent** | `8080` | Routé via le bouclier Gluetun |
 
 > **Note réseau & sécurité :** Les ports `8080` (qBittorrent) et `9696` (Prowlarr) n'existent pas directement sur leurs conteneurs respectifs. Ils ont été dépouillés de leur accès direct au réseau. C'est le conteneur **Gluetun** qui expose ces ports sur le réseau local et redirige le trafic entrant vers eux à l'intérieur du tunnel VPN.
+
+---
+
+## 💾 Migration / Sauvegarde
+
+Pour dupliquer cette infrastructure sur un NAS ou la passer à quelqu'un d'autre, deux scripts sont fournis :
+
+### Sauvegarder (sur la machine actuelle)
+```bash
+./gestion.sh 4
+# ou directement :
+./sauvegarder.sh
+```
+Cela crée une archive `multimedia_backup_YYYYMMDD_HHMMSS.tar.gz` contenant la configuration de tous les services (indexers, connexions, profils de qualité, comptes, etc.).
+
+### Restaurer (sur la nouvelle machine)
+```bash
+# 1. Cloner le repo
+git clone <url-du-repo>
+cd Multimedia
+
+# 2. Restaurer les configurations
+./gestion.sh 5
+# ou directement :
+./restaurer.sh multimedia_backup_XXXXXXXX_XXXXXX.tar.gz
+
+# 3. Adapter les .env (le script vous guide)
+# 4. Lancer les services
+./gestion.sh 1
+```
+
+> **Note :** Les `.env` de l'ancienne machine sont inclus dans l'archive à titre de référence. Le script de restauration vous propose de les copier ou de repartir des `.env.example`. Dans tous les cas, pensez à adapter `PUID`, `PGID`, `CHEMIN_ABSOLU_MEDIA` et `VPN_CLE_PRIVEE` à la nouvelle machine.
