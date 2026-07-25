@@ -78,14 +78,40 @@ case $choix in
     ;;
 
   5)
-    if [ -z "${2:-}" ]; then
-      echo "📋 Archives disponibles :"
-      ls -lh multimedia_backup_*.tar.gz 2>/dev/null || echo "  Aucune archive trouvée dans ce dossier."
-      echo ""
-      read -p "Chemin de l'archive à restaurer : " archive
-      ./restaurer.sh "$archive"
-    else
+    if [ -n "${2:-}" ]; then
       ./restaurer.sh "$2"
+    else
+      # Cherche les archives disponibles
+      archives=( multimedia_backup_*.tar.gz )
+      if [ ! -f "${archives[0]}" ]; then
+        echo "❌ Aucune archive trouvée dans ce dossier."
+        echo "   Placez un fichier multimedia_backup_*.tar.gz ici."
+        exit 1
+      fi
+
+      echo "📋 Archives disponibles :"
+      echo ""
+      for i in "${!archives[@]}"; do
+        taille=$(du -sh "${archives[$i]}" | cut -f1)
+        echo "  $((i+1))) ${archives[$i]}  (${taille})"
+      done
+      echo ""
+
+      if [ ${#archives[@]} -eq 1 ]; then
+        read -p "Restaurer cette archive ? (O/n) : " reponse
+        if [[ "$reponse" =~ ^[nN]$ ]]; then
+          echo "Annulé."
+          exit 0
+        fi
+        ./restaurer.sh "${archives[0]}"
+      else
+        read -p "Numéro de l'archive à restaurer (1-${#archives[@]}) : " num
+        if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -ge 1 ] && [ "$num" -le ${#archives[@]} ]; then
+          ./restaurer.sh "${archives[$((num-1))]}"
+        else
+          echo "❌ Choix invalide."
+        fi
+      fi
     fi
     ;;
     

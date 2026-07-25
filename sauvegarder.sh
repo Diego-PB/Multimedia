@@ -5,7 +5,7 @@
 #  Usage : ./sauvegarder.sh [dossier_de_sortie]
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 
 # --- Configuration ---
@@ -26,6 +26,10 @@ info()  { echo -e "${BLEU}ℹ️  $1${RESET}"; }
 ok()    { echo -e "${VERT}✅ $1${RESET}"; }
 warn()  { echo -e "${JAUNE}⚠️  $1${RESET}"; }
 erreur(){ echo -e "${ROUGE}❌ $1${RESET}"; }
+
+# Compteur de succès/échecs
+SUCCES=0
+ECHECS=0
 
 # Nettoyage à la sortie
 cleanup() { rm -rf "${DOSSIER_TEMP}"; }
@@ -117,6 +121,18 @@ sauvegarder_arr() {
   copie_directe "$nom" "$config_dir"
 }
 
+# Exclusions communes pour éviter de copier les gros fichiers inutiles
+EXCLUSIONS=(
+  --exclude='logs/' --exclude='Logs/' --exclude='log/'
+  --exclude='cache/' --exclude='Cache/'
+  --exclude='transcodes/'
+  --exclude='Backups/'
+  --exclude='MediaCover/'
+  --exclude='metadata/'
+  --exclude='*.log' --exclude='*.log.*'
+  --exclude='.nfo'
+)
+
 # Copie directe des fichiers de configuration essentiels (sans les gros caches/logs)
 copie_directe() {
   local nom="$1"
@@ -124,29 +140,38 @@ copie_directe() {
 
   if [ ! -d "$config_dir" ]; then
     erreur "${nom} : dossier config introuvable (${config_dir})"
+    ECHECS=$((ECHECS + 1))
     return
   fi
 
   mkdir -p "${DOSSIER_BACKUP}/${nom}"
 
-  # On copie tout sauf les fichiers volumineux inutiles
-  rsync -a \
-    --exclude='logs/' \
-    --exclude='Logs/' \
-    --exclude='log/' \
-    --exclude='cache/' \
-    --exclude='Cache/' \
-    --exclude='transcodes/' \
-    --exclude='Backups/' \
-    --exclude='MediaCover/' \
-    --exclude='metadata/' \
-    --exclude='*.log' \
-    --exclude='*.log.*' \
-    --exclude='.nfo' \
-    "${config_dir}/" "${DOSSIER_BACKUP}/${nom}/" 2>/dev/null || \
-  cp -r "${config_dir}/" "${DOSSIER_BACKUP}/${nom}/" 2>/dev/null
+  # Tentative 1 : rsync (le plus propre, gère bien les exclusions)
+  if rsync -a "${EXCLUSIONS[@]}" "${config_dir}/" "${DOSSIER_BACKUP}/${nom}/" 2>/dev/null; then
+    ok "${nom} : copie directe effectuée"
+    SUCCES=$((SUCCES + 1))
+    return
+  fi
 
-  ok "${nom} : copie directe effectuée"
+  # Tentative 2 : cp classique (si rsync n'est pas installé)
+  if cp -r "${config_dir}/" "${DOSSIER_BACKUP}/${nom}/" 2>/dev/null; then
+    ok "${nom} : copie effectuée (sans exclusions)"
+    SUCCES=$((SUCCES + 1))
+    return
+  fi
+
+  # Tentative 3 : sudo rsync (fichiers créés par Docker en root)
+  warn "${nom} : fichiers protégés détectés, tentative avec sudo..."
+  if sudo rsync -a "${EXCLUSIONS[@]}" "${config_dir}/" "${DOSSIER_BACKUP}/${nom}/" 2>/dev/null; then
+    # Rendre les fichiers copiés lisibles par l'utilisateur courant
+    sudo chown -R "$(id -u):$(id -g)" "${DOSSIER_BACKUP}/${nom}/"
+    ok "${nom} : copie effectuée (avec sudo)"
+    SUCCES=$((SUCCES + 1))
+    return
+  fi
+
+  erreur "${nom} : impossible de copier la configuration"
+  ECHECS=$((ECHECS + 1))
 }
 
 # =============================================================================
@@ -201,7 +226,22 @@ ok "Fichiers .env sauvegardés (dans _env_reference/)"
 #  CRÉATION DE L'ARCHIVE
 # =============================================================================
 
+# =============================================================================
+#  RÉSUMÉ ET CRÉATION DE L'ARCHIVE
+# =============================================================================
+
 echo ""
+if [ "$ECHECS" -gt 0 ]; then
+  warn "${SUCCES} services sauvegardés, ${ECHECS} échecs"
+else
+  ok "${SUCCES} services sauvegardés avec succès"
+fi
+
+if [ "$SUCCES" -eq 0 ]; then
+  erreur "Aucun service sauvegardé — abandon"
+  exit 1
+fi
+
 info "Création de l'archive..."
 
 ARCHIVE_FINALE="${DOSSIER_SORTIE}/${NOM_ARCHIVE}.tar.gz"
@@ -216,6 +256,7 @@ echo "=========================================="
 echo ""
 echo -e "  📦 Archive : ${BLEU}${ARCHIVE_FINALE}${RESET}"
 echo -e "  📏 Taille  : ${TAILLE}"
+echo -e "  📊 Bilan   : ${SUCCES} OK / ${ECHECS} échecs"
 echo ""
 echo "  Pour restaurer sur une autre machine :"
 echo "    1. Copie l'archive + le repo sur la nouvelle machine"
